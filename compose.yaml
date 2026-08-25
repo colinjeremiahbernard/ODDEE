@@ -1,0 +1,20 @@
+﻿services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: oddee-postgres
+    environment:
+      POSTGRES_DB: oddee
+      POSTGRES_USER: oddee
+      POSTGRES_PASSWORD: oddee_dev
+    ports:
+      - "5434:5432"
+    volumes:
+      - oddee_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oddee -d oddee"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  oddee_postgres_data:

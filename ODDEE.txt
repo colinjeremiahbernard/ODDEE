@@ -1,0 +1,25 @@
+oddee/
+├── README.md
+├── Cargo.toml
+├── .env.example
+├── compose.yaml
+├── migrations/
+│   └── 0001_initial.sql
+├── src/
+│   ├── main.rs
+│   ├── config.rs
+│   ├── state.rs
+│   ├── domain/
+│   │   ├── mod.rs
+│   │   ├── event.rs
+│   │   └── anomaly.rs
+│   ├── api/
+│   │   ├── mod.rs
+│   │   ├── health.rs
+│   │   ├── events.rs
+│   │   └── anomalies.rs
+│   └── detection/
+│       ├── mod.rs
+│       └── baseline.rs
+└── tests/
+    └── anomaly_detection.rs
