@@ -7,12 +7,17 @@ use sqlx::postgres::PgPoolOptions;
 use std::env;
 use tokio::net::TcpListener;
 
-use crate::{api::events::create_event, state::AppState};
+use crate::{
+    api::events::{create_event, get_event, get_events},
+    state::AppState,
+};
 
 pub fn app(state: AppState) -> Router {
-    Router::new()
-        .route("/events", post(create_event))
-        .with_state(state)
+    let app = Router::new()
+        .route("/events/{id}", axum::routing::get(get_event))
+        .route("/events", post(create_event).get(get_events))
+        .with_state(state);
+    app
 }
 
 #[tokio::main]
