@@ -1,7 +1,7 @@
-// src/api/events.rs
 use axum::{Json, extract::State, http::StatusCode};
+use chrono::{DateTime, Utc};
 use serde::Deserialize;
-use uuid::Uuid;
+use sqlx::types::Json as SqlxJson;
 
 use crate::{
     domain::event::{EventKind, EventSource, PhysicalEvent},
@@ -10,7 +10,7 @@ use crate::{
 
 #[derive(Debug, Deserialize)]
 pub struct CreateEventRequest {
-    pub occurred_at: chrono::DateTime<chrono::Utc>,
+    pub occurred_at: DateTime<Utc>,
     pub source: EventSource,
     pub entity_id: String,
     pub kind: EventKind,
@@ -19,18 +19,44 @@ pub struct CreateEventRequest {
 }
 
 pub async fn create_event(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     Json(payload): Json<CreateEventRequest>,
-) -> Result<Json<PhysicalEvent>, (StatusCode, String)> {
-    let event = PhysicalEvent {
-        id: Uuid::new_v4(),
-        occurred_at: payload.occurred_at,
-        source: payload.source,
-        entity_id: payload.entity_id,
-        kind: payload.kind,
-        zone: payload.zone,
-        metadata: payload.metadata,
-    };
+) -> Result<(StatusCode, Json<PhysicalEvent>), (StatusCode, String)> {
+    let event = sqlx::query_as::<_, PhysicalEvent>(
+        r#"
+        INSERT INTO physical_events (
+            occurred_at,
+            source,
+            entity_id,
+            kind,
+            zone,
+            metadata
+        )
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING
+            id,
+            occurred_at,
+            source,
+            entity_id,
+            kind,
+            zone,
+            metadata
+        "#,
+    )
+    .bind(payload.occurred_at)
+    .bind(payload.source)
+    .bind(payload.entity_id)
+    .bind(payload.kind)
+    .bind(payload.zone)
+    .bind(SqlxJson(payload.metadata))
+    .fetch_one(&state.pool)
+    .await
+    .map_err(|error| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to create physical event: {error}"),
+        )
+    })?;
 
-    Ok(Json(event))
+    Ok((StatusCode::CREATED, Json(event)))
 }

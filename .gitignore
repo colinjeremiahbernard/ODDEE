@@ -1,1 +1,15 @@
-/target
+# Rust build output
+/target/
+
+# Local environment and secrets
+.env
+
+# Rust formatter backups
+**/*.rs.bk
+
+# Windows debugger symbols
+*.pdb
+
+# Optional editor files
+.vscode/
+.idea/
