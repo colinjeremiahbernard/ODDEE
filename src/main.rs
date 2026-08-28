@@ -1,16 +1,15 @@
 mod api;
 mod domain;
 mod state;
-
-use axum::{Router, routing::post};
+use api::{create_event, get_event, get_events};
+use axum::{
+    Router,
+    routing::{get, post},
+};
 use sqlx::postgres::PgPoolOptions;
+use state::AppState;
 use std::env;
 use tokio::net::TcpListener;
-
-use crate::{
-    api::events::{create_event, get_event, get_events},
-    state::AppState,
-};
 
 pub fn app(state: AppState) -> Router {
     let app = Router::new()
