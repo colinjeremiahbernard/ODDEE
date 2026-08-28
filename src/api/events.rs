@@ -27,6 +27,20 @@ pub async fn create_event(
     State(state): State<AppState>,
     Json(payload): Json<CreateEventRequest>,
 ) -> Result<(StatusCode, Json<PhysicalEvent>), (StatusCode, String)> {
+    if payload.entity_id.trim().is_empty() {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "entity_id must not be empty".to_string(),
+        ));
+    }
+
+    if payload.zone.trim().is_empty() {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "zone must not be empty".to_string(),
+        ));
+    }
+
     let event = sqlx::query_as::<_, PhysicalEvent>(
         r#"
         INSERT INTO physical_events (
