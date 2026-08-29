@@ -1,11 +1,8 @@
 mod api;
 mod domain;
 mod state;
-use api::{CreateEventRequest, EventFilters, create_event, get_event, get_events};
-use axum::{
-    Router,
-    routing::{get, post},
-};
+use api::{create_event, get_event, get_events};
+use axum::{Router, routing::post};
 use sqlx::postgres::PgPoolOptions;
 use state::AppState;
 use std::env;
