@@ -1,7 +1,7 @@
 mod api;
 mod domain;
 mod state;
-use api::{create_event, get_event, get_events};
+use api::{CreateEventRequest, EventFilters, create_event, get_event, get_events};
 use axum::{
     Router,
     routing::{get, post},
