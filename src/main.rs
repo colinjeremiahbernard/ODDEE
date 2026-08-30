@@ -1,26 +1,23 @@
+use axum::{
+    Router,
+    routing::{get, post},
+};
+use sqlx::postgres::PgPoolOptions;
+use std::net::SocketAddr;
+use tokio::net::TcpListener;
+
 mod api;
 mod domain;
 mod state;
-use api::{create_event, get_event, get_events};
-use axum::{Router, routing::post};
-use sqlx::postgres::PgPoolOptions;
-use state::AppState;
-use std::env;
-use tokio::net::TcpListener;
 
-pub fn app(state: AppState) -> Router {
-    let app = Router::new()
-        .route("/events/{id}", axum::routing::get(get_event))
-        .route("/events", post(create_event).get(get_events))
-        .with_state(state);
-    app
-}
+use api::{create_anomaly, create_event, get_anomalies, get_anomaly, get_event, get_events};
+use state::AppState;
 
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
     let pool = PgPoolOptions::new()
         .max_connections(5)
@@ -29,13 +26,18 @@ async fn main() {
         .expect("Failed to connect to database");
 
     let state = AppState { pool };
-    let app = app(state);
 
-    let listener = TcpListener::bind("0.0.0.0:3000")
-        .await
-        .expect("Failed to bind address");
+    let app = Router::new()
+        .route("/events", post(create_event).get(get_events))
+        .route("/events/{id}", get(get_event))
+        .route("/anomalies", post(create_anomaly).get(get_anomalies))
+        .route("/anomalies/{id}", get(get_anomaly))
+        .with_state(state);
 
-    println!("Listening on http://{}", listener.local_addr().unwrap());
+    let addr: SocketAddr = "0.0.0.0:3000".parse().unwrap();
+    let listener = TcpListener::bind(addr).await.unwrap();
 
-    axum::serve(listener, app).await.expect("Server failed");
+    println!("Listening on http://{addr}");
+
+    axum::serve(listener, app).await.unwrap();
 }
