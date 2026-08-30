@@ -4,6 +4,7 @@ use serde::Deserialize;
 use sqlx::types::Json as SqlxJson;
 
 use crate::{
+    detection,
     domain::event::{EventKind, EventSource, PhysicalEvent},
     state::AppState,
 };
@@ -71,6 +72,14 @@ pub async fn create_event(
             format!("Failed to create physical event: {error}"),
         )
     })?;
+
+    // Spawn anomaly detection as a fire-and-forget task so the HTTP response
+    // is not delayed. Any detection errors are logged inside `run_all`.
+    let detection_pool = state.pool.clone();
+    let detection_event = event.clone();
+    tokio::spawn(async move {
+        detection::run_all(&detection_event, &detection_pool).await;
+    });
 
     Ok((StatusCode::CREATED, Json(event)))
 }

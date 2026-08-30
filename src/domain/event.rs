@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::Type;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "event_source", rename_all = "snake_case")]
 pub enum EventSource {
@@ -14,7 +14,7 @@ pub enum EventSource {
     Machine,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Type)]
 #[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "event_kind", rename_all = "snake_case")]
 pub enum EventKind {

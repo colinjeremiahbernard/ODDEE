@@ -7,6 +7,7 @@ use std::net::SocketAddr;
 use tokio::net::TcpListener;
 
 mod api;
+mod detection;
 mod domain;
 mod state;
 
