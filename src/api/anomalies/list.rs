@@ -10,8 +10,8 @@ use crate::{domain::anomaly::Anomaly, state::AppState};
 
 #[derive(Debug, Deserialize)]
 pub struct AnomalyFilters {
-    pub entity_id: Option<String>,
     pub severity: Option<String>,
+    pub status: Option<String>,
     pub limit: Option<i64>,
     pub offset: Option<i64>,
 }
@@ -37,22 +37,23 @@ pub async fn get_anomalies(
         SELECT
             id,
             detected_at,
-            entity_id,
-            source_event_id,
             severity,
-            reason,
-            metadata
+            score,
+            title,
+            explanation,
+            status::text AS status,
+            related_event_ids
         FROM anomalies
         WHERE 1 = 1
         "#,
     );
 
-    if let Some(entity_id) = filters.entity_id.as_ref() {
-        items_query.push(" AND entity_id = ").push_bind(entity_id);
-    }
-
     if let Some(severity) = filters.severity.as_ref() {
         items_query.push(" AND severity = ").push_bind(severity);
+    }
+
+    if let Some(status) = filters.status.as_ref() {
+        items_query.push(" AND status = ").push_bind(status);
     }
 
     items_query
@@ -80,12 +81,12 @@ pub async fn get_anomalies(
         "#,
     );
 
-    if let Some(entity_id) = filters.entity_id.as_ref() {
-        count_query.push(" AND entity_id = ").push_bind(entity_id);
-    }
-
     if let Some(severity) = filters.severity.as_ref() {
         count_query.push(" AND severity = ").push_bind(severity);
+    }
+
+    if let Some(status) = filters.status.as_ref() {
+        count_query.push(" AND status = ").push_bind(status);
     }
 
     let total: i64 = count_query

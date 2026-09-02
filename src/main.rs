@@ -5,6 +5,7 @@ use axum::{
 use sqlx::postgres::PgPoolOptions;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
+use tracing::info;
 
 mod api;
 mod detection;
@@ -16,6 +17,8 @@ use state::AppState;
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt::init();
+    info!("Server starting up");
     dotenvy::dotenv().ok();
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");

@@ -1,13 +1,13 @@
-use axum::{Json, extract::State, http::StatusCode};
-use chrono::{DateTime, Utc};
-use serde::Deserialize;
-use sqlx::types::Json as SqlxJson;
-
 use crate::{
     detection,
     domain::event::{EventKind, EventSource, PhysicalEvent},
     state::AppState,
 };
+use axum::{Json, extract::State, http::StatusCode};
+use chrono::{DateTime, Utc};
+use serde::Deserialize;
+use sqlx::types::Json as SqlxJson;
+use tracing::info;
 
 #[derive(Debug, Deserialize)]
 pub struct CreateEventRequest {
@@ -72,8 +72,12 @@ pub async fn create_event(
             format!("Failed to create physical event: {error}"),
         )
     })?;
-
     // Spawn anomaly detection as a fire-and-forget task so the HTTP response
+    info!(
+        event_id = %event.id,
+        entity_id = %event.entity_id,
+        "Event created, spawning detection task"
+    );
     // is not delayed. Any detection errors are logged inside `run_all`.
     let detection_pool = state.pool.clone();
     let detection_event = event.clone();

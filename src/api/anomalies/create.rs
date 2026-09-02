@@ -4,18 +4,17 @@ use serde::Deserialize;
 use sqlx::types::Json as SqlxJson;
 use uuid::Uuid;
 
-use crate::{
-    domain::anomaly::{Anomaly, AnomalySeverity},
-    state::AppState,
-};
+use crate::{domain::anomaly::Anomaly, state::AppState};
 
 #[derive(Debug, Deserialize)]
 pub struct CreateAnomalyRequest {
     pub detected_at: DateTime<Utc>,
-    pub entity_id: String,
-    pub source_event_id: Option<Uuid>,
-    pub severity: AnomalySeverity,
-    pub reason: String,
+    pub severity: String,
+    pub score: f32,
+    pub title: String,
+    pub explanation: String,
+    pub status: Option<String>,
+    pub related_event_ids: Vec<Uuid>,
     pub metadata: serde_json::Value,
 }
 
@@ -25,34 +24,40 @@ pub async fn create_anomaly(
 ) -> Result<Json<Anomaly>, (StatusCode, String)> {
     let anomaly_id = Uuid::new_v4();
 
+    let status = payload.status.unwrap_or_else(|| "new".to_string());
+
     let anomaly = sqlx::query_as::<_, Anomaly>(
         r#"
         INSERT INTO anomalies (
             id,
             detected_at,
-            entity_id,
-            source_event_id,
             severity,
-            reason,
-            metadata
+            score,
+            title,
+            explanation,
+            status,
+            related_event_ids
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING
             id,
             detected_at,
-            entity_id,
-            source_event_id,
             severity,
-            reason,
-            metadata
+            score,
+            title,
+            explanation,
+            status,
+            related_event_ids
         "#,
     )
     .bind(anomaly_id)
     .bind(payload.detected_at)
-    .bind(payload.entity_id)
-    .bind(payload.source_event_id)
     .bind(payload.severity)
-    .bind(payload.reason)
+    .bind(payload.score)
+    .bind(payload.title)
+    .bind(payload.explanation)
+    .bind(status)
+    .bind(&payload.related_event_ids)
     .bind(SqlxJson(payload.metadata))
     .fetch_one(&state.pool)
     .await
