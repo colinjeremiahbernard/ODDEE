@@ -16,13 +16,13 @@ use rules::{
 ///
 /// Failures in individual rules are logged but do not abort the others or the HTTP response.
 pub async fn run_all(event: &PhysicalEvent, pool: &PgPool) {
-    use tracing::{error, info, warn};
     info!(
         event_id = %event.id,
         entity_id = %event.entity_id,
         kind = ?event.kind,
         "Running detection rules"
     );
+
     let rule_futures: Vec<
         std::pin::Pin<Box<dyn std::future::Future<Output = Option<rules::DetectedAnomaly>> + Send>>,
     > = vec![

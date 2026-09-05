@@ -15,7 +15,9 @@ pub struct DetectedAnomaly {
     pub severity: String,
     pub score: f32,
     pub related_event_ids: Vec<Uuid>,
-    pub metadata: serde_json::Value,
+    /// Optional evidence attachments (e.g., camera snapshot IDs).
+    #[allow(dead_code)]
+    pub snapshot_ids: Vec<String>,
 }
 
 impl DetectedAnomaly {
@@ -103,11 +105,7 @@ pub async fn object_missing_without_transaction(
         severity: "High".to_string(),
         score: 0.9,
         related_event_ids: vec![event.id],
-        metadata: serde_json::json!({
-            "zone": event.zone,
-            "event_kind": "object_missing",
-            "window_minutes": 60
-        }),
+        snapshot_ids: vec![],
     })
 }
 
@@ -138,7 +136,7 @@ pub async fn repeated_access_denied(
     .await
     .unwrap_or(0);
 
-    if count < 3 || count != 3 {
+    if count < 3 {
         return None;
     }
 
@@ -151,11 +149,7 @@ pub async fn repeated_access_denied(
         severity: "Critical".to_string(),
         score: 0.95,
         related_event_ids: vec![event.id],
-        metadata: serde_json::json!({
-            "denial_count": count,
-            "window_minutes": 10,
-            "zone": event.zone
-        }),
+        snapshot_ids: vec![],
     })
 }
 
@@ -180,11 +174,7 @@ pub async fn off_hours_movement(event: &PhysicalEvent, _pool: &PgPool) -> Option
         severity: "Medium".to_string(),
         score: 0.7,
         related_event_ids: vec![event.id],
-        metadata: serde_json::json!({
-            "hour_utc": hour,
-            "zone": event.zone,
-            "event_kind": "object_moved"
-        }),
+        snapshot_ids: vec![],
     })
 }
 
@@ -224,13 +214,11 @@ pub async fn novel_zone_entry(event: &PhysicalEvent, pool: &PgPool) -> Option<De
         severity: "Low".to_string(),
         score: 0.5,
         related_event_ids: vec![event.id],
-        metadata: serde_json::json!({
-            "zone": event.zone,
-            "first_visit": true
-        }),
+        snapshot_ids: vec![],
     })
 }
-/// Rule 5: Repeated zone entry without exit within 10 minutes → HIGH.
+
+/// Rule 5: Repeated zone entry without exit within 15 minutes → HIGH.
 ///
 /// If the same entity_id enters the same zone twice within a short window
 /// without an exited_zone event in between, flag an anomaly.
@@ -283,10 +271,6 @@ pub async fn repeated_zone_entry(event: &PhysicalEvent, pool: &PgPool) -> Option
         severity: "High".to_string(),
         score: 0.9,
         related_event_ids: entered_ids.clone(),
-        metadata: serde_json::json!({
-            "zone": event.zone,
-            "entry_count": entered_ids.len(),
-            "window_minutes": 15
-        }),
+        snapshot_ids: vec![],
     })
 }

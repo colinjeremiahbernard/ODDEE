@@ -67,7 +67,7 @@ Package `BX-2041` moved from Shelf B-12 at 14:32.
 
 The prototype is designed around the following components:
 
-- **Frontend:** A visual dashboard showing the warehouse layout, live events, anomaly markers, and evidence timeline.
+- **Frontend:** A visual dashboard showing the warehouse layout, live events, anomaly markers, and evidence timeline. The current prototype focuses on the backend API and detection layer; a frontend will be added in a subsequent phase.
 - **Backend:** A Rust API responsible for event ingestion, baseline evaluation, anomaly generation, and alert management.
 - **Database:** PostgreSQL for physical events, expected patterns, anomalies, evidence relationships, and investigation state.
 - **Replay engine:** A deterministic simulator that produces normal and anomalous warehouse events.
@@ -237,6 +237,133 @@ npm install
 npm run dev
 ```
 
+## API Reference
+
+ODDEƎ exposes a REST API for ingesting physical events and querying detected anomalies. All examples below assume the backend is running locally on `http://localhost:3000`.
+
+### Events
+
+#### `POST /events`
+
+Create a new physical event.
+
+**Request body:**
+
+```json
+{
+  "occurred_at": "2026-09-04T22:00:00Z",
+  "source": "camera",
+  "entity_id": "package-BX-2041",
+  "kind": "entered_zone",
+  "zone": "warehouse-a",
+  "metadata": {
+    "camera_id": "cam-01",
+    "confidence": 0.96
+  }
+}
+```
+
+**Example (PowerShell):**
+
+```powershell
+$body = @{
+    occurred_at = (Get-Date).ToUniversalTime().ToString("o")
+    source      = "camera"
+    entity_id   = "package-BX-2041"
+    kind        = "entered_zone"
+    zone        = "warehouse-a"
+    metadata    = @{ camera_id = "cam-01"; confidence = 0.96 }
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post -Uri "http://localhost:3000/events" `
+    -Body $body -ContentType "application/json"
+```
+
+**Response:** `201 Created` with the created `PhysicalEvent`.
+
+---
+
+#### `GET /events`
+
+List physical events with optional filters and pagination.
+
+**Query parameters:**
+
+- `entity_id` (optional): filter by entity
+- `zone` (optional): filter by zone
+- `limit` (optional, default 50, max 100)
+- `offset` (optional, default 0)
+
+**Example:**
+
+```powershell
+Invoke-RestMethod -Method Get `
+    -Uri "http://localhost:3000/events?entity_id=package-BX-2041&limit=10"
+```
+
+**Response:** `200 OK` with a paginated envelope:
+
+```json
+{
+  "items": [
+    /* PhysicalEvent[] */
+  ],
+  "total": 42,
+  "limit": 10,
+  "offset": 0,
+  "has_more": true
+}
+```
+
+---
+
+### Anomalies
+
+#### `GET /anomalies`
+
+List detected anomalies with optional filters and pagination.
+
+**Query parameters:**
+
+- `severity` (optional): e.g. `Low`, `Medium`, `High`, `Critical`
+- `status` (optional): e.g. `new`, `acknowledged`, `resolved`
+- `limit` (optional, default 50, max 100)
+- `offset` (optional, default 0)
+
+**Example:**
+
+```powershell
+Invoke-RestMethod -Method Get `
+    -Uri "http://localhost:3000/anomalies?severity=High&limit=20"
+```
+
+**Response:** `200 OK` with a paginated envelope:
+
+```json
+{
+  "items": [
+    {
+      "id": "57561b04-e4bd-401f-81b6-4aba9e8c67e1",
+      "detected_at": "2026-09-04T22:10:00Z",
+      "severity": "High",
+      "score": 0.9,
+      "title": "Repeated zone entry",
+      "explanation": "Entity 'package-BX-2041' entered zone 'warehouse-a' 2 times within a short window without an exit.",
+      "status": "new",
+      "related_event_ids": [
+        "0dccd63e-3fe3-4136-83d5-5ff80ea58d8d",
+        "a204d572-5936-44f1-bab8-22fe2fb22dd2"
+      ]
+    }
+  ],
+  "total": 3,
+  "limit": 20,
+  "offset": 0,
+  "has_more": false
+}
+```
+
+Anomalies are generated automatically by background detection rules (e.g., repeated zone entry, novel zone entry, off‑hours movement) whenever new events are ingested.
 The exact commands should be updated once the repository structure and framework choices have been finalized.
 
 ## Development Principles
