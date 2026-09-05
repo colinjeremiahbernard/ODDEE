@@ -2,24 +2,23 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
+import { FloorPlanComponent } from '../../components/floor-plan/floor-plan.component';
 
-import {
-  OddeeApiService,
+import { OddeeApiService,
   PhysicalEvent,
   Anomaly,
-} from '../../services/oddee-api.service';
+  ListEnvelope } from '../../services/oddee-api.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FloorPlanComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit {
   events: PhysicalEvent[] = [];
   anomalies: Anomaly[] = [];
-
   loading = true;
   error: string | null = null;
 

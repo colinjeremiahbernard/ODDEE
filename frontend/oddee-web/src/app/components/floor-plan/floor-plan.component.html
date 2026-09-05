@@ -1,0 +1,171 @@
+<section class="floor-plan" aria-label="Warehouse floor plan">
+  <header class="floor-plan-header">
+    <div>
+      <p class="eyebrow">Spatial view</p>
+      <h2>Warehouse floor plan</h2>
+      <p class="subtitle">
+        Zones, aisles, and live event pulses. Highlighted zones contain at least
+        one anomaly that needs review.
+      </p>
+    </div>
+
+    <div class="legend" aria-label="Legend">
+      <span class="legend-item">
+        <span class="dot dot-event" aria-hidden="true"></span>
+        Physical event
+      </span>
+      <span class="legend-item">
+        <span class="dot dot-anomaly" aria-hidden="true"></span>
+        Anomalous zone
+      </span>
+      <span class="legend-item">
+        <span class="dot dot-quiet" aria-hidden="true"></span>
+        Quiet zone
+      </span>
+    </div>
+  </header>
+
+  <div class="canvas">
+    <svg
+      viewBox="0 0 1000 560"
+      role="img"
+      aria-labelledby="floor-plan-title"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <title id="floor-plan-title">Warehouse floor plan with live event markers</title>
+
+      <!-- subtle background grid -->
+      <defs>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path
+            d="M 40 0 L 0 0 0 40"
+            fill="none"
+            stroke="rgba(23, 25, 28, 0.05)"
+            stroke-width="1"
+          />
+        </pattern>
+        <pattern
+          id="routes-stripes"
+          width="14"
+          height="14"
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(45)"
+        >
+          <rect width="14" height="14" fill="rgba(115, 183, 216, 0.18)" />
+          <line
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="14"
+            stroke="rgba(115, 183, 216, 0.55)"
+            stroke-width="2"
+          />
+        </pattern>
+      </defs>
+
+      <rect x="0" y="0" width="1000" height="560" fill="url(#grid)" />
+
+      <!-- zones -->
+      <ng-container *ngFor="let zone of zones; trackBy: trackZone">
+        <ng-container [ngSwitch]="zone.shape">
+          <rect
+            *ngSwitchCase="'rect'"
+            [attr.x]="zone.x"
+            [attr.y]="zone.y"
+            [attr.width]="zone.width"
+            [attr.height]="zone.height"
+            rx="10"
+            class="zone"
+            [class.zone-anomaly]="zoneStats[zone.id]?.hasAnomaly"
+          />
+          <polygon
+            *ngSwitchCase="'polygon'"
+            [attr.points]="zone.points"
+            class="zone zone-routes"
+          />
+        </ng-container>
+
+        <text
+          *ngIf="zone.shape === 'rect'"
+          [attr.x]="(zone.x ?? 0) + 12"
+          [attr.y]="(zone.y ?? 0) + 24"
+          class="zone-label"
+        >
+          {{ zone.label }}
+        </text>
+        <text
+          *ngIf="zone.shape === 'rect'"
+          [attr.x]="(zone.x ?? 0) + 12"
+          [attr.y]="(zone.y ?? 0) + 42"
+          class="zone-sub"
+        >
+          {{ zone.description }}
+        </text>
+
+        <!-- event pulses on the zone -->
+        <ng-container *ngIf="zone.shape === 'rect'">
+          <g *ngFor="let p of pulsePositions(zone.id, zoneStats[zone.id]?.events || 0); trackBy: trackPulse">
+            <circle
+              [attr.cx]="p.x"
+              [attr.cy]="p.y"
+              r="10"
+              class="pulse"
+              [class.pulse-anomaly]="zoneStats[zone.id]?.hasAnomaly"
+            />
+            <circle
+              [attr.cx]="p.x"
+              [attr.cy]="p.y"
+              r="4"
+              class="pulse-core"
+              [class.pulse-core-anomaly]="zoneStats[zone.id]?.hasAnomaly"
+            />
+          </g>
+        </ng-container>
+      </ng-container>
+
+      <!-- aisle labels -->
+      <ng-container *ngFor="let a of aisleMarkers; trackBy: trackAisle">
+        <rect
+          [attr.x]="a.x - 18"
+          [attr.y]="a.y - 9"
+          width="36"
+          height="18"
+          rx="4"
+          class="aisle-tag"
+        />
+        <text
+          [attr.x]="a.x"
+          [attr.y]="a.y + 4"
+          text-anchor="middle"
+          class="aisle-label"
+        >
+          {{ a.label }}
+        </text>
+      </ng-container>
+
+      <!-- camera markers -->
+      <g class="cameras" aria-hidden="true">
+        <circle cx="40" cy="20" r="6" class="cam" />
+        <circle cx="960" cy="20" r="6" class="cam" />
+        <circle cx="500" cy="20" r="6" class="cam" />
+        <circle cx="40" cy="540" r="6" class="cam" />
+        <circle cx="960" cy="540" r="6" class="cam" />
+      </g>
+    </svg>
+  </div>
+
+  <footer class="floor-plan-footer">
+    <div class="stat">
+      <span class="stat-label">Tracked zones</span>
+      <strong>{{ zones.length }}</strong>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Live event markers</span>
+      <strong>{{ totalEventMarkers }}</strong>
+    </div>
+    <div class="stat" [class.alert]="totalAnomalousZones > 0">
+      <span class="stat-label">Anomalous zones</span>
+      <strong>{{ totalAnomalousZones }}</strong>
+    </div>
+  </footer>
+</section>

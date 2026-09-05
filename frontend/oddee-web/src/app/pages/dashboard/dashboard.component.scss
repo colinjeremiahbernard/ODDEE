@@ -4,13 +4,20 @@
 }
 
 .dashboard {
+  --ink: #17191c;
+  --paper: #f6f5f0;
+  --orange: #ff6b35;
+  --blue: #73b7d8;
+  --slate: #69727d;
+
   min-height: 100vh;
   padding: 48px clamp(20px, 5vw, 76px);
   color: #172033;
-  background:
-    radial-gradient(circle at 8% 0%, rgba(112, 92, 255, 0.18), transparent 30%),
-    radial-gradient(circle at 96% 10%, rgba(34, 211, 238, 0.16), transparent 28%),
-    linear-gradient(135deg, #f7f8ff 0%, #eef2ff 52%, #f8fbff 100%);
+  background: var(--paper);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(255, 107, 53, 0.06) 0%, transparent 45%),
+    radial-gradient(circle at 92% 8%, rgba(115, 183, 216, 0.08) 0%, transparent 40%),
+    linear-gradient(165deg, #f6f5f0 0%, #ebe8db 60%, #f6f5f0 100%);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
