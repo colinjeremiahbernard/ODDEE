@@ -53,7 +53,10 @@ pub async fn get_anomalies(
     }
 
     if let Some(status) = filters.status.as_ref() {
-        items_query.push(" AND status = ").push_bind(status);
+        items_query
+            .push(" AND status = ")
+            .push_bind(status)
+            .push("::anomaly_status");
     }
 
     items_query
@@ -86,7 +89,10 @@ pub async fn get_anomalies(
     }
 
     if let Some(status) = filters.status.as_ref() {
-        count_query.push(" AND status = ").push_bind(status);
+        count_query
+            .push(" AND status = ")
+            .push_bind(status)
+            .push("::anomaly_status");
     }
 
     let total: i64 = count_query

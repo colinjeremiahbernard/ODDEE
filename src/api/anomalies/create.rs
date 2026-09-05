@@ -1,7 +1,6 @@
 use axum::{Json, extract::State, http::StatusCode};
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
-use sqlx::types::Json as SqlxJson;
 use uuid::Uuid;
 
 use crate::{domain::anomaly::Anomaly, state::AppState};
@@ -15,7 +14,6 @@ pub struct CreateAnomalyRequest {
     pub explanation: String,
     pub status: Option<String>,
     pub related_event_ids: Vec<Uuid>,
-    pub metadata: serde_json::Value,
 }
 
 pub async fn create_anomaly(
@@ -38,7 +36,7 @@ pub async fn create_anomaly(
             status,
             related_event_ids
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES ($1, $2, $3, $4, $5, $6, CAST($7 AS anomaly_status), $8)
         RETURNING
             id,
             detected_at,
@@ -46,7 +44,7 @@ pub async fn create_anomaly(
             score,
             title,
             explanation,
-            status,
+            status::text AS status,
             related_event_ids
         "#,
     )
@@ -58,7 +56,6 @@ pub async fn create_anomaly(
     .bind(payload.explanation)
     .bind(status)
     .bind(&payload.related_event_ids)
-    .bind(SqlxJson(payload.metadata))
     .fetch_one(&state.pool)
     .await
     .map_err(|error| {

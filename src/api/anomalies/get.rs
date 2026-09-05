@@ -16,11 +16,12 @@ pub async fn get_anomaly(
         SELECT
             id,
             detected_at,
-            entity_id,
-            source_event_id,
             severity,
-            reason,
-            metadata
+            score,
+            title,
+            explanation,
+            status::text AS status,
+            related_event_ids
         FROM anomalies
         WHERE id = $1
         "#,

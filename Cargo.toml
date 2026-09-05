@@ -2,6 +2,8 @@
 name = "oddee"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.85"
+default-run = "oddee"
 
 [dependencies]
 anyhow = "1.0.104"
@@ -22,5 +24,6 @@ sqlx = { version = "0.8", features = [
   "uuid",
   "chrono",
   "json",
+  "migrate",
 ] }
 tower-http = { version = "0.6", features = ["cors"] }

@@ -11,10 +11,7 @@
     </button>
   </header>
 
-  <app-floor-plan
-    [events]="events"
-    [anomalies]="anomalies"
-  ></app-floor-plan>
+  <app-floor-plan [events]="events" [anomalies]="anomalies"></app-floor-plan>
 
   <section class="stats-grid" aria-label="Dashboard statistics">
     <article class="stat-card">
@@ -51,11 +48,11 @@
         <div class="event-icon" aria-hidden="true">•</div>
 
         <div class="event-content">
-          <h3>Physical event</h3>
-          <p>Recorded physical activity.</p>
+          <h3>{{ event.kind }} — {{ event.entity_id }}</h3>
+          <p>{{ event.source }} · zone {{ event.zone }}</p>
         </div>
 
-        <span class="event-time">Recent</span>
+        <span class="event-time">{{ event.occurred_at | date: 'short' }}</span>
       </article>
     </div>
   </section>
@@ -78,11 +75,11 @@
         <div class="alert-icon" aria-hidden="true">!</div>
 
         <div class="anomaly-content">
-          <h3>Anomaly detected</h3>
-          <p>Review this anomaly record.</p>
+          <h3>{{ anomaly.title }}</h3>
+          <p>{{ anomaly.explanation }}</p>
         </div>
 
-        <span class="severity">Review</span>
+        <span class="severity">{{ anomaly.severity }}</span>
       </article>
     </div>
   </section>
