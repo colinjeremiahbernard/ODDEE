@@ -1,0 +1,84 @@
+<main class="dashboard">
+  <header class="dashboard-header">
+    <div>
+      <p class="eyebrow">ODDEE</p>
+      <h1>Dashboard</h1>
+      <p class="subtitle">Overview of recent physical activity and anomalies.</p>
+    </div>
+
+    <button type="button" class="refresh-button" (click)="load()">
+      Refresh
+    </button>
+  </header>
+
+  <section class="stats-grid" aria-label="Dashboard statistics">
+    <article class="stat-card">
+      <span class="stat-label">Events</span>
+      <strong>{{ events.length }}</strong>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-label">Anomalies</span>
+      <strong>{{ anomalies.length }}</strong>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-label">Status</span>
+      <strong>{{ anomalies.length === 0 ? 'Healthy' : 'Review' }}</strong>
+    </article>
+  </section>
+
+  <section class="dashboard-section">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Activity</p>
+        <h2>Recent events</h2>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="events.length === 0">
+      <h3>No events available</h3>
+      <p>No physical events were returned by the API.</p>
+    </div>
+
+    <div class="event-list" *ngIf="events.length > 0">
+      <article class="event-card" *ngFor="let event of events">
+        <div class="event-icon" aria-hidden="true">•</div>
+
+        <div class="event-content">
+          <h3>Physical event</h3>
+          <p>Recorded physical activity.</p>
+        </div>
+
+        <span class="event-time">Recent</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="dashboard-section">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Monitoring</p>
+        <h2>Anomalies</h2>
+      </div>
+    </div>
+
+    <div class="empty-state healthy" *ngIf="anomalies.length === 0">
+      <h3>No anomalies detected</h3>
+      <p>The anomaly endpoint returned no items.</p>
+    </div>
+
+    <div class="anomaly-list" *ngIf="anomalies.length > 0">
+      <article class="anomaly-card" *ngFor="let anomaly of anomalies">
+        <div class="alert-icon" aria-hidden="true">!</div>
+
+        <div class="anomaly-content">
+          <h3>Anomaly detected</h3>
+          <p>Review this anomaly record.</p>
+        </div>
+
+        <span class="severity">Review</span>
+      </article>
+    </div>
+  </section>
+</main>
