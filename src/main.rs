@@ -1,6 +1,6 @@
 use axum::{
     http::Method,
-    routing::{get, post},
+    routing::{get, patch, post},
     Router,
 };
 use sqlx::postgres::PgPoolOptions;
@@ -21,6 +21,8 @@ use api::{
     get_anomaly,
     get_event,
     get_events,
+    health,
+    update_anomaly_status,
 };
 use state::AppState;
 
@@ -52,15 +54,17 @@ async fn main() {
         .allow_methods([
             Method::GET,
             Method::POST,
+            Method::PATCH,
             Method::OPTIONS,
         ])
         .allow_headers(Any);
 
     let app = Router::new()
+        .route("/health", get(health))
         .route("/events", post(create_event).get(get_events))
         .route("/events/{id}", get(get_event))
         .route("/anomalies", post(create_anomaly).get(get_anomalies))
-        .route("/anomalies/{id}", get(get_anomaly))
+        .route("/anomalies/{id}", get(get_anomaly).patch(update_anomaly_status))
         .with_state(state)
         .layer(cors);
 

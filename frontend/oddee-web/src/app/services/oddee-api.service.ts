@@ -48,6 +48,10 @@ export class OddeeApiService {
     return this.http.get<ListEnvelope<PhysicalEvent>>(`${API_BASE}/events`, { params });
   }
 
+  getEvent(id: string): Observable<PhysicalEvent> {
+    return this.http.get<PhysicalEvent>(`${API_BASE}/events/${id}`);
+  }
+
   getAnomalies(params?: {
     severity?: string;
     status?: string;
@@ -55,5 +59,9 @@ export class OddeeApiService {
     offset?: number;
   }): Observable<ListEnvelope<Anomaly>> {
     return this.http.get<ListEnvelope<Anomaly>>(`${API_BASE}/anomalies`, { params });
+  }
+
+  updateAnomalyStatus(id: string, status: string): Observable<Anomaly> {
+    return this.http.patch<Anomaly>(`${API_BASE}/anomalies/${id}`, { status });
   }
 }

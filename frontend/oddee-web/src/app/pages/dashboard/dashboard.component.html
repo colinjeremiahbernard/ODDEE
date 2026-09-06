@@ -71,15 +71,48 @@
     </div>
 
     <div class="anomaly-list" *ngIf="anomalies.length > 0">
-      <article class="anomaly-card" *ngFor="let anomaly of anomalies">
-        <div class="alert-icon" aria-hidden="true">!</div>
+      <article class="anomaly-card" [class.expanded]="isExpanded(anomaly)" *ngFor="let anomaly of anomalies">
+        <div class="anomaly-row" (click)="toggleDetails(anomaly)">
+          <div class="alert-icon" aria-hidden="true">!</div>
 
-        <div class="anomaly-content">
-          <h3>{{ anomaly.title }}</h3>
-          <p>{{ anomaly.explanation }}</p>
+          <div class="anomaly-content">
+            <h3>{{ anomaly.title }}</h3>
+            <p>{{ anomaly.explanation }}</p>
+          </div>
+
+          <span class="severity">{{ anomaly.severity }}</span>
+          <span class="status-badge" [attr.data-status]="anomaly.status">{{ anomaly.status }}</span>
         </div>
 
-        <span class="severity">{{ anomaly.severity }}</span>
+        <div class="anomaly-details" *ngIf="isExpanded(anomaly)">
+          <div class="detail-actions">
+            <button type="button" class="action-button" *ngFor="let action of statusActions(anomaly)"
+              [disabled]="statusUpdating.has(anomaly.id)" (click)="updateStatus(anomaly, action.next)">
+              {{ action.label }}
+            </button>
+          </div>
+
+          <div class="evidence">
+            <p class="evidence-heading">Evidence</p>
+
+            <p class="evidence-empty" *ngIf="!anomaly.related_event_ids || anomaly.related_event_ids.length === 0">
+              No related events attached to this anomaly.
+            </p>
+
+            <p class="evidence-loading" *ngIf="evidenceLoading.has(anomaly.id)">
+              Loading related events…
+            </p>
+
+            <ul class="evidence-timeline" *ngIf="evidenceByAnomaly[anomaly.id] as evidence">
+              <li *ngFor="let event of evidence">
+                <span class="evidence-time">{{ event.occurred_at | date: 'short' }}</span>
+                <span class="evidence-kind">{{ event.kind }}</span>
+                <span class="evidence-entity">{{ event.entity_id }}</span>
+                <span class="evidence-zone">{{ event.zone }}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </article>
     </div>
   </section>
